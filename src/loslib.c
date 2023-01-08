@@ -1,5 +1,5 @@
 /*
-** $Id: loslib.c,v 1.19 2006/04/26 18:19:49 roberto Exp $
+** $Id: loslib.c,v 1.19.1.3 2008/01/18 16:38:18 roberto Exp $
 ** Standard Operating System library
 ** See Copyright Notice in lua.h
 */
@@ -19,7 +19,6 @@
 #include "lauxlib.h"
 #include "lualib.h"
 
-#pragma warning(disable: 4244)
 
 static int os_pushresult (lua_State *L, int i, const char *filename) {
   int en = errno;  /* calls to Lua API may change this value */
@@ -36,13 +35,8 @@ static int os_pushresult (lua_State *L, int i, const char *filename) {
 }
 
 
-static int os_execute (lua_State *L)
-{
-#if !defined(_XBOX_VER) && !defined(PS3) && !defined(DURANGO) && !defined(ORBIS)
+static int os_execute (lua_State *L) {
   lua_pushinteger(L, system(luaL_optstring(L, 1, NULL)));
-#else
-  lua_pushinteger(L, 0);
-#endif
   return 1;
 }
 
@@ -61,27 +55,18 @@ static int os_rename (lua_State *L) {
 
 
 static int os_tmpname (lua_State *L) {
-#if !defined(PS3) && !defined(ORBIS) && !defined(APPLE)
   char buff[LUA_TMPNAMBUFSIZE];
   int err;
   lua_tmpnam(buff, err);
   if (err)
-#endif
     return luaL_error(L, "unable to generate a unique filename");
-#if !defined(PS3) && !defined(ORBIS) && !defined(APPLE)
   lua_pushstring(L, buff);
   return 1;
-#endif
 }
 
 
-static int os_getenv (lua_State *L)
-{
-#if !defined(_XBOX_VER) && !defined(PS3) && !defined(DURANGO) && !defined(ORBIS)
+static int os_getenv (lua_State *L) {
   lua_pushstring(L, getenv(luaL_checkstring(L, 1)));  /* if NULL push nil */
-#else
-  lua_pushstring(L, "nil");  /* if NULL push nil */
-#endif
   return 1;
 }
 
@@ -161,11 +146,22 @@ static int os_date (lua_State *L) {
     setboolfield(L, "isdst", stm->tm_isdst);
   }
   else {
-    char b[256];
-    if (strftime(b, sizeof(b), s, stm))
-      lua_pushstring(L, b);
-    else
-      return luaL_error(L, LUA_QL("date") " format too long");
+    char cc[3];
+    luaL_Buffer b;
+    cc[0] = '%'; cc[2] = '\0';
+    luaL_buffinit(L, &b);
+    for (; *s; s++) {
+      if (*s != '%' || *(s + 1) == '\0')  /* no conversion specifier? */
+        luaL_addchar(&b, *s);
+      else {
+        size_t reslen;
+        char buff[200];  /* should be big enough for any conversion result */
+        cc[1] = *(++s);
+        reslen = strftime(buff, sizeof(buff), cc, stm);
+        luaL_addlstring(&b, buff, reslen);
+      }
+    }
+    luaL_pushresult(&b);
   }
   return 1;
 }
@@ -219,7 +215,6 @@ static int os_setlocale (lua_State *L) {
 
 static int os_exit (lua_State *L) {
   exit(luaL_optint(L, 1, EXIT_SUCCESS));
-  return 0;  /* to avoid warnings */
 }
 
 static const luaL_Reg syslib[] = {

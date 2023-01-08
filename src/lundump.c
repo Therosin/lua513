@@ -1,10 +1,8 @@
 /*
-** $Id: lundump.c,v 1.60 2006/02/16 15:53:49 lhf Exp $
+** $Id: lundump.c,v 2.7.1.2 2008/01/18 16:39:11 roberto Exp $
 ** load precompiled Lua chunks
 ** See Copyright Notice in lua.h
 */
-
-#pragma warning(disable:6385 6386 6011 6294 6201 6387 6326)
 
 #include <string.h>
 
@@ -27,11 +25,11 @@ typedef struct {
  ZIO* Z;
  Mbuffer* b;
  const char* name;
- int swap;
 } LoadState;
 
 #ifdef LUAC_TRUST_BINARIES
 #define IF(c,s)
+#define error(S,s)
 #else
 #define IF(c,s)		if (c) error(S,s)
 
@@ -42,6 +40,7 @@ static void error(LoadState* S, const char* why)
 }
 #endif
 
+#define LoadMem(S,b,n,size)	LoadBlock(S,b,(n)*(size))
 #define	LoadByte(S)		(lu_byte)LoadChar(S)
 #define LoadVar(S,x)		LoadMem(S,&x,1,sizeof(x))
 #define LoadVector(S,b,n,size)	LoadMem(S,b,n,size)
@@ -49,50 +48,8 @@ static void error(LoadState* S, const char* why)
 static void LoadBlock(LoadState* S, void* b, size_t size)
 {
  size_t r=luaZ_read(S->Z,b,size);
+ UNUSED(r);
  IF (r!=0, "unexpected end");
-}
-
-static void LoadMem (LoadState* S, void* b, int n, size_t size)
-{
-	LoadBlock(S,b,n*size);
-	if (S->swap)
-	{
-		char* p=(char*) b;
-		char c;
-		switch (size)
-		{
-		case 1:
-			break;
-		case 2:
-			while (n--)
-			{
-				c=p[0]; p[0]=p[1]; p[1]=c;
-				p+=2;
-			}
-			break;
-		case 4:
-			while (n--)
-			{
-				c=p[0]; p[0]=p[3]; p[3]=c;
-				c=p[1]; p[1]=p[2]; p[2]=c;
-				p+=4;
-			}
-			break;
-		case 8:
-			while (n--)
-			{
-				c=p[0]; p[0]=p[7]; p[7]=c;
-				c=p[1]; p[1]=p[6]; p[6]=c;
-				c=p[2]; p[2]=p[5]; p[5]=c;
-				c=p[3]; p[3]=p[4]; p[4]=c;
-				p+=8;
-			}
-			break;
-		default:
-			IF(1, "bad size");
-			break;
-		}
-	}
 }
 
 static int LoadChar(LoadState* S)
@@ -167,7 +124,7 @@ static void LoadConstants(LoadState* S, Proto* f)
 	setsvalue2n(S->L,o,LoadString(S));
 	break;
    default:
-	IF (1, "bad constant");
+	error(S,"bad constant");
 	break;
   }
  }
@@ -245,7 +202,6 @@ Proto* luaU_undump (lua_State* L, ZIO* Z, Mbuffer* buff, const char* name)
  S.L=L;
  S.Z=Z;
  S.b=buff;
- S.swap = 0;
  LoadHeader(&S);
  return LoadFunction(&S,luaS_newliteral(L,"=?"));
 }

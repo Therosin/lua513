@@ -1,5 +1,5 @@
 /*
-** $Id: lua.h,v 1.218 2006/06/02 15:34:00 roberto Exp $
+** $Id: lua.h,v 1.218.1.4 2008/01/03 15:41:15 roberto Exp $
 ** Lua - An Extensible Extension Language
 ** Lua.org, PUC-Rio, Brazil (http://www.lua.org)
 ** See Copyright Notice at the end of this file
@@ -9,8 +9,6 @@
 #ifndef lua_h
 #define lua_h
 
-#pragma warning( disable : 4996 )
-
 #include <stdarg.h>
 #include <stddef.h>
 
@@ -19,9 +17,9 @@
 
 
 #define LUA_VERSION	"Lua 5.1"
-#define LUA_RELEASE	"Lua 5.1.1"
+#define LUA_RELEASE	"Lua 5.1.3"
 #define LUA_VERSION_NUM	501
-#define LUA_COPYRIGHT	"Copyright (C) 1994-2006 Lua.org, PUC-Rio"
+#define LUA_COPYRIGHT	"Copyright (C) 1994-2008 Lua.org, PUC-Rio"
 #define LUA_AUTHORS 	"R. Ierusalimschy, L. H. de Figueiredo & W. Celes"
 
 
@@ -110,8 +108,6 @@ typedef LUA_INTEGER lua_Integer;
 ** state manipulation
 */
 LUA_API lua_State *(lua_newstate) (lua_Alloc f, void *ud);
-LUA_API void       (lua_storedebuginfo) (lua_State *L, int e);	/* save memory when debugger will not be used */
-LUA_API int        (lua_isstoredebuginfo) (lua_State *L);
 LUA_API void       (lua_close) (lua_State *L);
 LUA_API lua_State *(lua_newthread) (lua_State *L);
 
@@ -298,6 +294,9 @@ LUA_API void lua_setallocf (lua_State *L, lua_Alloc f, void *ud);
 #define lua_Chunkwriter		lua_Writer
 
 
+/* hack */
+LUA_API void lua_setlevel	(lua_State *from, lua_State *to);
+
 
 /*
 ** {======================================================================
@@ -363,7 +362,7 @@ struct lua_Debug {
 
 
 /******************************************************************************
-* Copyright (C) 1994-2006 Lua.org, PUC-Rio.  All rights reserved.
+* Copyright (C) 1994-2008 Lua.org, PUC-Rio.  All rights reserved.
 *
 * Permission is hereby granted, free of charge, to any person obtaining
 * a copy of this software and associated documentation files (the

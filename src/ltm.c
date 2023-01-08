@@ -1,9 +1,9 @@
 /*
-** $Id: ltm.c,v 2.8 2006/01/10 12:50:00 roberto Exp $
+** $Id: ltm.c,v 2.8.1.1 2007/12/27 13:02:25 roberto Exp $
 ** Tag methods
 ** See Copyright Notice in lua.h
 */
-#pragma warning(disable:6385 6386 6011 6294 6201 6387 6326)
+
 
 #include <string.h>
 

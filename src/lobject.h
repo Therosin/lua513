@@ -1,5 +1,5 @@
 /*
-** $Id: lobject.h,v 2.20 2006/01/18 11:37:34 roberto Exp $
+** $Id: lobject.h,v 2.20.1.1 2007/12/27 13:02:25 roberto Exp $
 ** Type definitions for Lua objects
 ** See Copyright Notice in lua.h
 */
@@ -355,12 +355,8 @@ typedef struct Table {
 #define lmod(s,size) \
 	(check_exp((size&(size-1))==0, (cast(int, (s) & ((size)-1)))))
 
-#if (SIZE_MAX == UINT_MAX)
-#define twoto(x)	(1<<(x))
-#else
-#define twoto(x) (((unsigned long long)1)<<((unsigned long long)(x)))
-#endif
 
+#define twoto(x)	(1<<(x))
 #define sizenode(t)	(twoto((t)->lsizenode))
 
 

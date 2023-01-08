@@ -1,0 +1,6 @@
+E:/Projects/Lua/lua513/build/CMakeFiles/liblua.dir
+E:/Projects/Lua/lua513/build/CMakeFiles/libluadll.dir
+E:/Projects/Lua/lua513/build/CMakeFiles/lua.dir
+E:/Projects/Lua/lua513/build/CMakeFiles/luac.dir
+E:/Projects/Lua/lua513/build/CMakeFiles/ALL_BUILD.dir
+E:/Projects/Lua/lua513/build/CMakeFiles/ZERO_CHECK.dir

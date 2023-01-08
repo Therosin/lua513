@@ -1,17 +1,12 @@
 /*
-** $Id: lmathlib.c,v 1.67 2005/08/26 17:36:32 roberto Exp $
+** $Id: lmathlib.c,v 1.67.1.1 2007/12/27 13:02:25 roberto Exp $
 ** Standard mathematical library
 ** See Copyright Notice in lua.h
 */
 
 
 #include <stdlib.h>
-#if defined(PS3) && defined(PS3OPT) && !defined(__SPU__)
-	#define MATH_H <fastmath.h>
-#else
-	#define MATH_H <math.h>
-#endif
-#include MATH_H
+#include <math.h>
 
 #define lmathlib_c
 #define LUA_LIB
@@ -22,13 +17,11 @@
 #include "lualib.h"
 
 
-#pragma warning(disable: 4305)
-
 #undef PI
 #define PI (3.14159265358979323846)
 #define RADIANS_PER_DEGREE (PI/180.0)
 
-#pragma warning(disable: 4244)
+
 
 static int math_abs (lua_State *L) {
   lua_pushnumber(L, fabs(luaL_checknumber(L, 1)));
@@ -184,13 +177,11 @@ static int math_max (lua_State *L) {
   return 1;
 }
 
-extern float script_frand0_1();
-extern void script_randseed( unsigned int );
 
 static int math_random (lua_State *L) {
   /* the `%' avoids the (rare) case of r==1, and is needed also because on
      some systems (SunOS!) `rand()' may return a value larger than RAND_MAX */
-  lua_Number r = (lua_Number)script_frand0_1();
+  lua_Number r = (lua_Number)(rand()%RAND_MAX) / (lua_Number)RAND_MAX;
   switch (lua_gettop(L)) {  /* check number of arguments */
     case 0: {  /* no arguments */
       lua_pushnumber(L, r);  /* Number between 0 and 1 */
@@ -216,7 +207,7 @@ static int math_random (lua_State *L) {
 
 
 static int math_randomseed (lua_State *L) {
-  script_randseed( luaL_checkint(L, 1) );
+  srand(luaL_checkint(L, 1));
   return 0;
 }
 

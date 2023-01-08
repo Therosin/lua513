@@ -1,5 +1,5 @@
 /*
-** $Id: llex.c,v 2.20 2006/03/09 18:14:31 roberto Exp $
+** $Id: llex.c,v 2.20.1.1 2007/12/27 13:02:25 roberto Exp $
 ** Lexical Analyzer
 ** See Copyright Notice in lua.h
 */
@@ -176,14 +176,9 @@ static void buffreplace (LexState *ls, char from, char to) {
 
 static void trydecpoint (LexState *ls, SemInfo *seminfo) {
   /* format error: try to update decimal point separator */
-  char old = ls->decpoint;
-#if defined(ANDROID)
-  // Android NDK does not have an implementation of lconv
-  ls->decpoint = '.';
-#else
   struct lconv *cv = localeconv();
+  char old = ls->decpoint;
   ls->decpoint = (cv ? cv->decimal_point[0] : '.');
-#endif
   buffreplace(ls, old, ls->decpoint);  /* try updated decimal separator */
   if (!luaO_str2d(luaZ_buffer(ls->buff), &seminfo->r)) {
     /* format error with correct decimal point: no more options */
@@ -362,36 +357,6 @@ static int llex (LexState *ls, SemInfo *seminfo) {
           next(ls);
         continue;
       }
-			//	support for // and /* */ style comments
-			case '/': {
-        next(ls);
-        if (ls->current == '/') 
-				{
-          while (ls->current != '\n' && ls->current != EOZ)
-            next(ls);
-          continue;
-        } 
-				else if (ls->current == '*') 
-				{
-          next(ls);
-          while (ls->current != EOZ) 
-					{
-            if (ls->current == '*') 
-						{
-              next(ls);
-              if (ls->current == '/') 
-							{
-                next(ls);
-                break;
-              }
-            }
-            next(ls);
-          }
-          continue;
-        } 
-				else
-          return '/';
-			}
       case '[': {
         int sep = skip_sep(ls);
         if (sep >= 0) {

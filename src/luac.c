@@ -3,7 +3,6 @@
 ** Lua compiler (saves bytecodes to files; also list bytecodes)
 ** See Copyright Notice in lua.h
 */
-#pragma warning(disable:6385 6386 6011 6294 6201 6387 6326)
 
 #include <errno.h>
 #include <stdio.h>
@@ -90,10 +89,8 @@ static int doargs(int argc, char* argv[])
   else if (IS("-o"))			/* output file */
   {
    output=argv[++i];
-   if (output==NULL || *output==0)
-     usage(LUA_QL("-o") " needs argument");
-   else if (IS("-"))
-     output=NULL;
+   if (output==NULL || *output==0) usage(LUA_QL("-o") " needs argument");
+   if (IS("-")) output=NULL;
   }
   else if (IS("-p"))			/* parse only */
    dumping=0;
@@ -147,7 +144,7 @@ static const Proto* combine(lua_State* L, int n)
  }
 }
 
-static int writer2(lua_State* L, const void* p, size_t size, void* u)
+static int writer(lua_State* L, const void* p, size_t size, void* u)
 {
  UNUSED(L);
  return (fwrite(p,size,1,(FILE*)u)!=1) && (size!=0);
@@ -178,7 +175,7 @@ static int pmain(lua_State* L)
   FILE* D= (output==NULL) ? stdout : fopen(output,"wb");
   if (D==NULL) cannot("open");
   lua_lock(L);
-  luaU_dump(L,f,writer2,D,stripping,0);
+  luaU_dump(L,f,writer,D,stripping);
   lua_unlock(L);
   if (ferror(D)) cannot("write");
   if (fclose(D)) cannot("close");
@@ -186,7 +183,6 @@ static int pmain(lua_State* L)
  return 0;
 }
 
-#if 0
 int main(int argc, char* argv[])
 {
  lua_State* L;
@@ -202,5 +198,3 @@ int main(int argc, char* argv[])
  lua_close(L);
  return EXIT_SUCCESS;
 }
-#endif
-

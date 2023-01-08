@@ -1,5 +1,5 @@
 /*
-** $Id: luaconf.h,v 1.82 2006/04/10 18:27:23 roberto Exp $
+** $Id: luaconf.h,v 1.82.1.6 2008/01/18 17:07:48 roberto Exp $
 ** Configuration file for Lua
 ** See Copyright Notice in lua.h
 */
@@ -29,7 +29,7 @@
 #endif
 
 
-#if !defined(LUA_ANSI) && defined(WIN32)
+#if !defined(LUA_ANSI) && defined(_WIN32)
 #define LUA_WIN
 #endif
 
@@ -360,7 +360,7 @@
 /*
 @@ LUA_COMPAT_OPENLIB controls compatibility with old 'luaL_openlib'
 @* behavior.
-** CHANGE it to undefined as soon as you replace to 'luaL_registry'
+** CHANGE it to undefined as soon as you replace to 'luaL_register'
 ** your uses of 'luaL_openlib'
 */
 #define LUA_COMPAT_OPENLIB
@@ -442,7 +442,8 @@
 ** functions. This limit is arbitrary; its only purpose is to stop C
 ** functions to consume unlimited stack space.
 */
-#define LUAI_MAXCSTACK	2048
+#define LUAI_MCS_AUX	((int)(INT_MAX / (4*sizeof(LUA_NUMBER))))
+#define LUAI_MAXCSTACK	(LUAI_MCS_AUX > SHRT_MAX ? SHRT_MAX : LUAI_MCS_AUX)
 
 
 
@@ -501,7 +502,7 @@
 */
 
 #define LUA_NUMBER_DOUBLE
-#define LUA_NUMBER	float
+#define LUA_NUMBER	double
 
 /*
 @@ LUAI_UACNUMBER is the result of an 'usual argument conversion'
@@ -517,8 +518,8 @@
 @@ LUAI_MAXNUMBER2STR is maximum size of previous conversion.
 @@ lua_str2number converts a string to a number.
 */
-#define LUA_NUMBER_SCAN		"%f"
-#define LUA_NUMBER_FMT		"%g"
+#define LUA_NUMBER_SCAN		"%lf"
+#define LUA_NUMBER_FMT		"%.14g"
 #define lua_number2str(s,n)	sprintf((s), LUA_NUMBER_FMT, (n))
 #define LUAI_MAXNUMBER2STR	32 /* 16 digits, sign, point, and \0 */
 #define lua_str2number(s,p)	strtod((s), (p))
@@ -528,14 +529,7 @@
 @@ The luai_num* macros define the primitive operations over numbers.
 */
 #if defined(LUA_CORE)
-
-#if defined(PS3) && defined(PS3OPT) && !defined(__SPU__)
-	#define MATH_H <fastmath.h>
-#else
-	#define MATH_H <math.h>
-#endif
-#include MATH_H
-
+#include <math.h>
 #define luai_numadd(a,b)	((a)+(b))
 #define luai_numsub(a,b)	((a)-(b))
 #define luai_nummul(a,b)	((a)*(b))
@@ -573,16 +567,10 @@
    with a DirectX idiosyncrasy */
 #else
 
-/*
-union luai_Cast { float l_d; long l_l; };
+union luai_Cast { double l_d; long l_l; };
 #define lua_number2int(i,d) \
   { volatile union luai_Cast u; u.l_d = (d) + 6755399441055744.0; (i) = u.l_l; }
 #define lua_number2integer(i,n)		lua_number2int(i, n)
-*/
-
-/* this option always works, but may be slow */
-#define lua_number2int(i,d)	((i)=(int)(d))
-#define lua_number2integer(i,d)	((i)=(lua_Integer)(d))
 
 #endif
 
@@ -679,7 +667,7 @@ union luai_Cast { float l_d; long l_l; };
 */
 #if defined(LUA_USE_POPEN)
 
-#define lua_popen(L,c,m)	((void)L, popen(c,m))
+#define lua_popen(L,c,m)	((void)L, fflush(NULL), popen(c,m))
 #define lua_pclose(L,file)	((void)L, (pclose(file) != -1))
 
 #elif defined(LUA_WIN)

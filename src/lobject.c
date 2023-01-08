@@ -1,5 +1,5 @@
 /*
-** $Id: lobject.c,v 2.22 2006/02/10 17:43:52 roberto Exp $
+** $Id: lobject.c,v 2.22.1.1 2007/12/27 13:02:25 roberto Exp $
 ** Some generic functions over Lua objects
 ** See Copyright Notice in lua.h
 */
@@ -89,7 +89,7 @@ int luaO_rawequalObj (const TValue *t1, const TValue *t2) {
 
 int luaO_str2d (const char *s, lua_Number *result) {
   char *endptr;
-  *result = (lua_Number)lua_str2number(s, &endptr);
+  *result = lua_str2number(s, &endptr);
   if (endptr == s) return 0;  /* conversion failed */
   if (*endptr == 'x' || *endptr == 'X')  /* maybe an hexadecimal constant? */
     *result = cast_num(strtoul(s, &endptr, 16));

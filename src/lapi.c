@@ -1,18 +1,12 @@
 /*
-** $Id: lapi.c,v 2.55 2006/06/07 12:37:17 roberto Exp $
+** $Id: lapi.c,v 2.55.1.3 2008/01/03 15:20:39 roberto Exp $
 ** Lua API
 ** See Copyright Notice in lua.h
 */
-#pragma warning(disable:6385 6386 6011 6294 6201 6387 6326)
+
 
 #include <assert.h>
-#if defined(PS3) && defined(PS3OPT) && !defined(__SPU__)
-	#define MATH_H <fastmath.h>
-#else
-	#define MATH_H <math.h>
-#endif
-#include MATH_H
-
+#include <math.h>
 #include <stdarg.h>
 #include <string.h>
 
@@ -126,6 +120,11 @@ LUA_API void lua_xmove (lua_State *from, lua_State *to, int n) {
     setobj2s(to, to->top++, from->top + i);
   }
   lua_unlock(to);
+}
+
+
+LUA_API void lua_setlevel (lua_State *from, lua_State *to) {
+  to->nCcalls = from->nCcalls;
 }
 
 
@@ -755,7 +754,7 @@ LUA_API int lua_setfenv (lua_State *L, int idx) {
       res = 0;
       break;
   }
-  luaC_objbarrier(L, gcvalue(o), hvalue(L->top - 1));
+  if (res) luaC_objbarrier(L, gcvalue(o), hvalue(L->top - 1));
   L->top--;
   lua_unlock(L);
   return res;
@@ -881,7 +880,7 @@ LUA_API int lua_dump (lua_State *L, lua_Writer writer, void *data) {
   api_checknelems(L, 1);
   o = L->top - 1;
   if (isLfunction(o))
-    status = luaU_dump(L, clvalue(o)->l.p, writer, data, 0, 0);
+    status = luaU_dump(L, clvalue(o)->l.p, writer, data, 0);
   else
     status = 1;
   lua_unlock(L);

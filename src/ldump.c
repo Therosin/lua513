@@ -1,5 +1,5 @@
 /*
-** $Id: ldump.c,v 1.15 2006/02/16 15:53:49 lhf Exp $
+** $Id: ldump.c,v 2.8.1.1 2007/12/27 13:02:25 roberto Exp $
 ** save precompiled Lua chunks
 ** See Copyright Notice in lua.h
 */
@@ -21,9 +21,9 @@ typedef struct {
  void* data;
  int strip;
  int status;
- int swap;
 } DumpState;
 
+#define DumpMem(b,n,size,D)	DumpBlock(b,(n)*(size),D)
 #define DumpVar(x,D)	 	DumpMem(&x,1,sizeof(x),D)
 
 static void DumpBlock(const void* b, size_t size, DumpState* D)
@@ -34,54 +34,6 @@ static void DumpBlock(const void* b, size_t size, DumpState* D)
   D->status=(*D->writer)(D->L,b,size,D->data);
   lua_lock(D->L);
  }
-}
-
-static void DumpMem(const void* b, size_t n, size_t size, DumpState* D)
-{
-	if (D->swap)
-	{
-		char* p=(char*) b;
-		char c[8];
-		switch (size)
-		{
-		case 1:
-			DumpBlock(b, n * size, D);
-			break;
-		case 2:
-			while (n--)
-			{
-				c[0] = p[1];
-				c[1] = p[0];
-				p += 2;
-				DumpBlock(c, 2, D);
-			}
-			break;
-		case 4:
-			while (n--)
-			{
-				c[0] = p[3]; c[1] = p[2]; c[2] = p[1]; c[3] = p[0];
-				p += 4;
-				DumpBlock(c, 4, D);
-			}
-			break;
-		case 8:
-			while (n--)
-			{
-				c[0] = p[7]; c[1] = p[6]; c[2] = p[5]; c[3] = p[4];
-				c[4] = p[3]; c[5] = p[2]; c[6] = p[1]; c[7] = p[0];
-				p+=8;
-				DumpBlock(c, 8, D);
-			}
-			break;
-		default:
-			//	IF(1, "bad size");
-			break;
-		}
-	}
-	else
-	{
-		DumpBlock(b, n * size, D);
-	}
 }
 
 static void DumpChar(int y, DumpState* D)
@@ -190,19 +142,15 @@ static void DumpFunction(const Proto* f, const TString* p, DumpState* D)
 
 static void DumpHeader(DumpState* D)
 {
-	char h[LUAC_HEADERSIZE];
-	luaU_header(h);
-	if (D->swap)
-	{
-		h[sizeof(LUA_SIGNATURE) - 1 + 2] ^= 1;
-	}
-	DumpBlock(h,LUAC_HEADERSIZE,D);
+ char h[LUAC_HEADERSIZE];
+ luaU_header(h);
+ DumpBlock(h,LUAC_HEADERSIZE,D);
 }
 
 /*
 ** dump Lua function as precompiled chunk
 */
-int luaU_dump (lua_State* L, const Proto* f, lua_Writer w, void* data, int strip, int bigEndian)
+int luaU_dump (lua_State* L, const Proto* f, lua_Writer w, void* data, int strip)
 {
  DumpState D;
  D.L=L;
@@ -210,7 +158,6 @@ int luaU_dump (lua_State* L, const Proto* f, lua_Writer w, void* data, int strip
  D.data=data;
  D.strip=strip;
  D.status=0;
- D.swap = bigEndian;
  DumpHeader(&D);
  DumpFunction(f,NULL,&D);
  return D.status;
