@@ -13,12 +13,6 @@ set ( SRC_LIB src/lauxlib.c src/lbaselib.c src/ldblib.c src/liolib.c
 set ( SRC_LUA src/lua.c )
 set ( SRC_LUAC src/luac.c src/print.c )
 
-
-# set bin output path
-set ( EXECUTABLE_OUTPUT_PATH ${CMAKE_SOURCE_DIR}/bin )
-# set lib output path
-set ( LIBRARY_OUTPUT_PATH ${CMAKE_SOURCE_DIR}/lib )
-
 add_library ( liblua ${SRC_CORE} ${SRC_LIB} )
 set_target_properties ( liblua PROPERTIES OUTPUT_NAME lua )
 
